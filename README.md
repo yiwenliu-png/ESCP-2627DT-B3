@@ -1,10 +1,10 @@
 
-# WareSync
+# Trackit
 ## Pharmaceutical Warehouse Operations & Workflow Tracking
 
 **Project Status:** Product Concept / Prototype
 
-WareSync is a role-based application concept designed to help internal pharmaceutical warehouse teams record package movements, document operational activities, identify bottlenecks, and coordinate follow-up actions.
+Trackit is a role-based application concept designed to help internal pharmaceutical warehouse teams record package movements, document operational activities, identify bottlenecks, and coordinate follow-up actions.
 
 It replaces selected paper-based operational logs with structured digital workflows while complementing—not replacing—existing Warehouse Management Systems (WMS), ERP platforms, and validated systems of record.
 
@@ -22,7 +22,7 @@ Some internal pharmaceutical warehouse activities may still be documented on pap
 - Identify workflow bottlenecks.
 - Coordinate issue resolution.
 
-WareSync proposes a lightweight digital operational layer featuring:
+Trackit proposes a lightweight digital operational layer featuring:
 
 - QR-code package scanning.
 - Role-specific interfaces.
@@ -49,7 +49,7 @@ In pharmaceutical environments, efficiency improvements must respect product qua
 
 ## Out of Scope
 
-WareSync does not independently replace:
+Trackit does not independently replace:
 
 - Regulated inventory records.
 - Serialization and track-and-trace systems.
@@ -63,7 +63,7 @@ All regulated decisions remain within authorized systems and workflows.
 
 # 3. User Roles and Screens
 
-WareSync provides three role-specific workspaces.
+Trackit provides three role-specific workspaces.
 
 | Role | Primary Purpose | Main Screens |
 |---|---|---|
@@ -447,7 +447,7 @@ Data structures, identifiers, and retention periods must be finalized through re
 
 # 9. Design System
 
-WareSync uses a clean, professional interface designed for pharmaceutical warehouse operations.
+Trackit uses a clean, professional interface designed for pharmaceutical warehouse operations.
 
 ## Color Palette
 
@@ -491,7 +491,7 @@ This architecture is illustrative and does not represent an existing deployment.
 
 ```text
 +----------------------------------------+
-|              WareSync UI               |
+|              Trackit UI               |
 |----------------------------------------|
 | Operator | Supervisor | Manager        |
 +----------------------------------------+
@@ -608,7 +608,7 @@ Activities:
 
 # 12. Example Success Metrics
 
-WareSync may evaluate performance through:
+Trackit may evaluate performance through:
 
 | Metric | Purpose |
 |---|---|
@@ -694,9 +694,9 @@ Use fictional or synthetic data for demonstrations.
 
 # 15. Project Summary
 
-**WareSync — Pharmaceutical Warehouse Operations & Workflow Tracking**
+**Trackit — Pharmaceutical Warehouse Operations & Workflow Tracking**
 
-WareSync aims to simplify internal pharmaceutical warehouse operations through:
+Trackit aims to simplify internal pharmaceutical warehouse operations through:
 
 - QR-code package scanning.
 - Role-specific workspaces.
