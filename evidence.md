@@ -45,12 +45,6 @@ because poorly timed deliveries create traffic at the docks
 but delivery times cannot be planned without quantitative data.
 *Source: S2*
 
-### 7. Technology Adoption
-Pharmaceutical logistics teams need reliable technology
-because mistakes can affect compliance and patient safety
-but companies are cautious about adopting unproven tools.
-*Source: S1*
-
 ## Implications for the Product
 
 | Insight | Feature |
@@ -61,4 +55,4 @@ but companies are cautious about adopting unproven tools.
 | 4 | Efficiency dashboard: time per step, delays and causes, for capacity and budget planning |
 | 5 | Live view of inbound and outbound area fill levels |
 | 6 | Delivery and traffic patterns over time to plan delivery slots |
-| 7 | Full audit trail of every scan, designed around compliance requirements |
+
