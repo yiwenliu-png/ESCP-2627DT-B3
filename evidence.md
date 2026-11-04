@@ -1,58 +1,54 @@
 # Evidence: Key Insights from User Research
 
-## Sources
+## Research Participants
 
-| ID | Source | Role | Context |
-|----|--------|------|---------|
-| S1 | Interview: Louise Jäger, 26 Oct 2026 | Global Logistics, Novo Nordisk (IT integrations of external warehouses) | External warehouses, strategic view |
-| S2 | Internship observation: Amalie Fischer | Intern, Novo Nordisk; observed internal warehouse management | Internal warehouse, first-hand |
+| Name | Role | Context |
+|------|------|---------|
+| Louise Jäger | Global Logistics, Novo Nordisk (IT integrations of external warehouses) | Interview, 26 Oct 2026: external warehouses, strategic view |
+| Amalie Fischer | Intern, Novo Nordisk | Internship observation: internal warehouse management |
+| Anders Kvisgaard Thomsen | Project Manager, Novo Nordisk internal warehouse, Hillerød, Denmark | Interview: internal warehouse, operational view |
 
 ## Key Insights
 
-### 1. Shipment Traceability
-Pharmaceutical logistics teams need accurate product information for every shipment
-because medicines must be traceable to their serial numbers and official batch records
-but manual recording becomes risky and impractical at scale.
-*Sources: S1, S2*
+**Core finding:** Shipment tracking in internal pharmaceutical warehouses is still largely manual. Our app's main function is to make this tracking digital, so every step a shipment goes through is recorded, at the source, and becomes visible and measurable.
+
+### 1. Manual Shipment Tracking (core problem)
+Warehouse operators need to record each shipment's progress through inbound, storage, sampling and distribution
+because supervisors and managers rely on this information to coordinate daily work
+but this is currently tracked manually on paper, which is time-consuming and hard to follow.
 
 ### 2. Sample Testing
-Warehouse operators need to record sample testing for every shipment
-because each shipment must be tested before it can move to the next step
+Warehouse operators need to record when each shipment is sampled
+because every batch must be tested to comply with pharmaceutical regulations
 but this adds a step to an already manual process.
-*Source: S2*
 
-### 3. Error Resolution
-Warehouse employees need to identify and resolve errors quickly
-because digital systems connect warehouses, suppliers and logistics providers
-but poor master data and legacy systems can cause processes to become stuck.
-*Source: S1*
+### 3. Issue Resolution
+Warehouse employees need to identify and resolve operational issues quickly
+because delays in one step hold up the shipments that follow
+but issues are not recorded in one place, so stuck processes are found late.
 
 ### 4. Efficiency Measurement
 Managers need visibility of delays and performance
 because they must plan capacity and budgets and understand operational risk
-but warehouse errors and delays are not recorded consistently, so efficiency cannot be measured.
-*Sources: S1, S2*
+but delays and issues are not recorded consistently, so efficiency cannot be measured.
 
 ### 5. Inbound and Outbound Flow
-Managers need to keep goods moving through the inbound and outbound areas
+Supervisors need to keep goods moving through the inbound and outbound areas
 because overfilled areas slow down the flow of the whole warehouse
-but there is no data showing when and why these areas overfill.
-*Source: S2*
+but there is no central view of how full these areas are.
 
 ### 6. Delivery Planning
 Managers need to schedule deliveries at the most efficient times
 because poorly timed deliveries create traffic at the docks
 but delivery times cannot be planned without quantitative data.
-*Source: S2*
 
 ## Implications for the Product
 
 | Insight | Feature |
 |---------|---------|
-| 1 | QR scan per shipment, linked to serial numbers and batch records, tracked through inbound, storage, sampling and distribution |
-| 2 | Sampling step with test status (pending, passed, failed) for every shipment |
-| 3 | Issue logging with error categories to flag stuck shipments |
+| 1 | **Core feature:** QR scan per shipment to digitally log each step (inbound, storage, sampling, distribution), replacing paper tracking. Operational record only, separate from official batch records |
+| 2 | Sampling step logged with time taken and status (awaiting sampling, sample taken) |
+| 3 | Issue logging with categories and a flag for shipments waiting too long |
 | 4 | Efficiency dashboard: time per step, delays and causes, for capacity and budget planning |
 | 5 | Live view of inbound and outbound area fill levels |
 | 6 | Delivery and traffic patterns over time to plan delivery slots |
-
