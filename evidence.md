@@ -55,4 +55,10 @@ but companies are cautious about adopting unproven tools.
 
 | Insight | Feature |
 |---------|---------|
-|
+| 1 | QR scan per shipment, linked to serial numbers and batch records, tracked through inbound, storage, sampling and distribution |
+| 2 | Sampling step with test status (pending, passed, failed) for every shipment |
+| 3 | Issue logging with error categories to flag stuck shipments |
+| 4 | Efficiency dashboard: time per step, delays and causes, for capacity and budget planning |
+| 5 | Live view of inbound and outbound area fill levels |
+| 6 | Delivery and traffic patterns over time to plan delivery slots |
+| 7 | Full audit trail of every scan, designed around compliance requirements |
