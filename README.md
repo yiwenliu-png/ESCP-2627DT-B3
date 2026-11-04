@@ -6,7 +6,7 @@
 
 Trackit is a role-based application concept designed to help internal pharmaceutical warehouse teams record package movements, document operational activities, identify bottlenecks, and coordinate follow-up actions.
 
-It replaces selected paper-based operational logs with structured digital workflows while complementing—not replacing—existing Warehouse Management Systems (WMS), ERP platforms, and validated systems of record.
+Trackit replaces selected paper-based operational logs with structured digital workflows while complementing—not replacing—existing Warehouse Management Systems (WMS), ERP platforms, and validated systems of record.
 
 > **Disclaimer:** Features described in this document are planned requirements, not claims of deployed or validated functionality.
 
