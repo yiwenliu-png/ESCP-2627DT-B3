@@ -1,236 +1,212 @@
-# TrackIt Architecture
+# TrackIt: Architecture and Technology Stack
 
-## 1. Architecture overview
+TrackIt's purpose is to **integrate warehouse operations with SAP**. In the prototype, that integration is **simulated**: a mock SAP module inside the app plays the role of SAP. TrackIt is a **front-end-only** web prototype. Everything runs in the browser using fictional data. There is **no backend, no database server, no external API and no AI service**, as the brief requires.
 
-TrackIt is a prototype for improving operational visibility in internal pharmaceutical warehouses. It helps warehouse staff record operational events, lets supervisors monitor delays and issues, and gives managers a basic view of efficiency indicators.
+---
 
-TrackIt is an operational monitoring layer. It does not replace SAP, WMS, ERP, QMS, serialization, inventory, official batch records, product release, or quarantine decisions.
+## 1. Technology stack
 
-The architecture is deliberately divided into:
+| Layer | Choice | Why |
+|-------|--------|-----|
+| Language | **TypeScript** | Catches mistakes early. AI coding tools handle it well. |
+| UI framework | **React** | Component-based, which fits the design system and Storybook |
+| Build tool / dev server | **Vite** | Fast, one-command start (`npm run dev`) |
+| Styling | **Plain CSS + CSS variables** (`tokens.css`) | The design tokens from `design.md` map 1:1. No extra framework to learn. |
+| Routing | **React Router** (`HashRouter`) | Back button works. Runs on GitHub Pages without server config. |
+| State | **React Context + `useReducer`** | One central store for shipments, events and issues |
+| Persistence | **`localStorage`** + "Reset demo data" | Data survives a page refresh. No server needed. |
+| SAP integration (prototype) | **Mock SAP module** (`src/integration/`) | Behaves like SAP (master data, accepts events, can be "offline") without any real connection |
+| Charts | **Recharts** | Simple bar charts. Runs locally (it's a library, not an API). |
+| Icons | **lucide-react** | Consistent, accessible icons |
+| Font | **@fontsource/inter** | Font is bundled, with no call to an external font service |
+| Component catalogue | **Storybook** | Required component storybook (see `design.md` §5) |
+| Tests (light) | **Vitest** | Unit tests for the logic: waiting time, delays, metrics |
+| Hosting (optional) | GitHub Pages | Lets the lecturer open a link without installing anything |
 
-1. **Prototype architecture** — the scope of the current workshop and clickable demonstration.
-2. **Future production architecture** — capabilities that would require further requirements, security, quality, privacy, integration, and validation review.
+**Prerequisites:** Node.js 22 LTS (or 20.19+), npm, Git, and a modern browser.
 
-## 2. Prototype architecture
+**Agentic coding tool:** [Cursor / GitHub Copilot / Claude Code: fill in what we used]. Our prompts are kept in `PROMPTS.md`.
 
-~~~
+---
+
+## 2. System overview
+
+```mermaid
 flowchart TB
-    subgraph Users[Prototype users]
-        Operator[Warehouse operator]
-        Supervisor[Warehouse supervisor]
-        Manager[Warehouse manager]
+    subgraph Browser["Browser (everything runs here)"]
+        UI["React UI<br/>Record · Monitor · Dashboard"]
+        Store["App store<br/>Context + useReducer"]
+        Logic["Logic module<br/>stages, waiting time, delays, metrics"]
+        LS[("localStorage")]
+        Seed["seed.ts<br/>fictional history events"]
+        Adapter["SAP adapter<br/>sapAdapter.ts"]
+        MockSAP["Mock SAP (simulated)<br/>master data + received events"]
     end
+    UI --> Store
+    Store --> Logic
+    Store <--> LS
+    Seed -->|first load / reset| Store
+    MockSAP -->|import shipments, products| Adapter
+    Store -->|send activities & issues| Adapter
+    Adapter --> MockSAP
+    Adapter -->|pending / sent / failed| Store
+```
 
-    subgraph Prototype[TrackIt prototype]
-        UI[Responsive mobile-first interface]
-        Roles[Role-based workspaces]
-        Actions[Activity recording and issue reporting]
-        Flow[Warehouse flow and delay view]
-        KPIs[Basic efficiency indicators]
-        Data[(Synthetic warehouse data)]
-    end
+No arrows leave the browser. That is how we meet the **no APIs, no real data** rule.
 
-    Operator --> UI
-    Supervisor --> UI
-    Manager --> UI
-    UI --> Roles
-    Roles --> Actions
-    Roles --> Flow
-    Roles --> KPIs
-    Actions --> Data
-    Flow --> Data
-    KPIs --> Data
-~~~
+**Why an adapter?** The rest of the app only talks to `sapAdapter.ts`. In a real deployment, the mock SAP is swapped for a real connection behind the same adapter, and the screens don't change. This shows how the integration is designed.
 
-### Prototype scope
+### Data flow for the main journey
+```mermaid
+sequenceDiagram
+    participant O as Operator (Record)
+    participant S as Store
+    participant M as Supervisor (Monitor)
+    participant D as Manager (Dashboard)
+    participant SAP as Mock SAP
+    O->>S: addEvent(SHP-1042, "Sample taken")
+    S->>S: validate, save, persist to localStorage
+    S-->>O: success toast (sync: pending)
+    S->>SAP: adapter.sendEvent(...)
+    SAP-->>S: accepted → sync: sent (or failed if offline)
+    M->>S: read shipments
+    S-->>M: stage, waiting time, delayed, open issues
+    M->>S: resolveIssue(ISS-07, note)
+    D->>S: read metrics
+    S-->>D: avg time per stage, delays, issue counts
+```
 
-The prototype should demonstrate one simple end-to-end workflow:
+---
 
-~~~
-flowchart LR
-    Record[Operator records activity] --> Monitor[Supervisor sees status and delays]
-    Monitor --> Analyse[Manager reviews basic performance data]
-~~~
+## 3. Data model
 
-The prototype includes:
+```ts
+type Stage = 'Received' | 'Awaiting sampling' | 'Sample taken' | 'Stored' | 'Picked' | 'Dispatched';
+type Role = 'operator' | 'supervisor' | 'manager';
+type Area = 'Inbound' | 'Storage' | 'Outbound';   // derived from stage
 
-- Role switching for operator, supervisor, and manager.
-- Mobile-first responsive layout.
-- Activity recording using a fictional package or shipment reference.
-- Simulated QR scanning or manual identifier entry.
-- Basic activity history and status display.
-- Issue reporting with fictional issue categories.
-- Supervisor view of waiting activities and open issues.
-- Manager view of basic time-per-step, delay, and trend indicators.
-- Fictional notifications and synthetic warehouse data.
-- Clear success and error states.
+interface Shipment {
+  id: string;            // "SHP-1042" (fictional)
+  product: string;       // "Product A – vials, 2–8 °C" (fictional)
+}
 
-The prototype does not include:
+interface ActivityEvent {
+  id: string;
+  shipmentId: string;
+  stage: Stage;
+  recordedAt: string;    // ISO timestamp
+  recordedBy: Role;      // role only, no personal names
+  syncStatus: SyncStatus;
+}
 
-- SAP, WMS, ERP, or QMS integration.
-- Real QR scanning or production package data.
-- Formal authentication or enterprise single sign-on.
-- Complex permissions or production-grade audit trails.
-- Inventory management, serialization, or official batch records.
-- Product release, quarantine removal, or quality decisions.
-- AI predictions or automated capacity recommendations.
-- Offline synchronization or conflict resolution.
+type SyncStatus = 'pending' | 'sent' | 'failed';
 
-## 3. Prototype screens and responsibilities
+// Mock SAP (simulated)
+interface SapMasterData {
+  shipments: { sapDeliveryNo: string; shipmentId: string; product: string; expectedAt: string }[];
+}
+interface SapAdapter {
+  importMasterData(): Promise<SapMasterData>;
+  sendEvent(e: ActivityEvent | Issue): Promise<'sent' | 'failed'>;
+  setOffline(offline: boolean): void;   // demo control
+}
 
-| Workspace | Main screens | Responsibility |
-|---|---|---|
-| Operator | Overview, Record Activity, Report Issue | Record an operational event or report a problem quickly |
-| Supervisor | Warehouse Flow, Exceptions Queue | Monitor progress, identify delays, and review open issues |
-| Manager | Analytics, KPI Trends | Review basic operational performance and recurring delays |
+interface Issue {
+  id: string;
+  shipmentId: string;
+  category: 'Damaged packaging' | 'Missing/unreadable label' | 'Temperature concern'
+          | 'Documentation mismatch' | 'Other';
+  description: string;
+  status: 'open' | 'resolved';
+  reportedAt: string;
+  resolvedAt?: string;
+  followUpNote?: string;
+  syncStatus: SyncStatus;
+}
+```
 
-The operator flow should be the primary demonstration:
+**Derived values (not stored, calculated in `logic/`):**
+- `currentStage` = stage of the latest event
+- `area`: Received / Awaiting sampling / Sample taken → Inbound · Stored → Storage · Picked / Dispatched → Outbound
+- `waitingMinutes` = now − latest event time
+- `isDelayed` = waitingMinutes > 240 and stage ≠ Dispatched
+- `hasOpenIssue`, dashboard metrics, area fill, arrivals and dispatches by hour, 7-day trend per day, rule-based insight sentences
 
-1. Select **Record Activity**.
-2. Choose an activity such as receiving, storage, picking, or dispatch.
-3. Scan or enter a fictional package/shipment reference.
-4. Confirm the activity.
-5. Show a clear saved or error state.
-6. Make the event visible in the supervisor and manager views.
+**Seed data:** timestamps are generated **relative to the moment the data is loaded** (e.g. "now − 6 h"), so delayed and on-time examples are always visible during a demo. The seed covers **7 days** of history so the trend chart has data.
 
-## 4. Data model for the prototype
+**Area capacity (fictional constants):** Inbound 12, Outbound 10.
 
-~~~
-erDiagram
-    USER ||--o{ ACTIVITY_EVENT : records
-    PACKAGE_REFERENCE ||--o{ ACTIVITY_EVENT : relates_to
-    USER ||--o{ ISSUE : reports
-    ACTIVITY_EVENT ||--o{ ISSUE : may_have
+---
 
-    USER {
-        string user_id PK
-        string role
-        string display_name
-    }
-    PACKAGE_REFERENCE {
-        string reference_id PK
-        string operational_status
-        string current_area
-    }
-    ACTIVITY_EVENT {
-        string event_id PK
-        string reference_id FK
-        string activity_type
-        string status
-        datetime recorded_at
-        string recorded_by FK
-    }
-    ISSUE {
-        string issue_id PK
-        string category
-        string description
-        string status
-        string reported_by FK
-    }
-~~~
+## 4. Project structure
 
-All records in the prototype must be fictional. The prototype should show timestamps, activity status, and user role for demonstration purposes, but these records must not be presented as validated pharmaceutical records.
+```
+ESCP-2627DT-B<n>/
+├── README.md
+├── evidence.md
+├── product.md
+├── design.md
+├── architecture.md
+├── PROMPTS.md                 # prompts used with the coding agent
+├── package.json
+├── vite.config.ts
+├── .storybook/                # Storybook config
+├── public/
+└── src/
+    ├── main.tsx
+    ├── App.tsx                # layout, router, header, nav
+    ├── styles/
+    │   ├── tokens.css         # design tokens from design.md
+    │   └── global.css
+    ├── data/
+    │   ├── types.ts
+    │   └── seed.ts            # fictional data only
+    ├── store/
+    │   └── AppStore.tsx       # context, reducer, localStorage
+    ├── integration/
+    │   ├── sapAdapter.ts      # interface the app uses
+    │   ├── mockSap.ts         # simulated SAP: master data, outbox, offline switch
+    │   └── sapMasterData.ts   # fictional SAP deliveries & products
+    ├── logic/
+    │   ├── shipments.ts       # stage, waiting time, delayed, area
+    │   ├── metrics.ts         # dashboard numbers + insights
+    │   └── *.test.ts          # Vitest tests
+    ├── components/            # one folder per component
+    │   └── Button/
+    │       ├── Button.tsx
+    │       ├── Button.css
+    │       └── Button.stories.tsx
+    └── screens/
+        ├── RecordScreen.tsx
+        ├── MonitorScreen.tsx
+        ├── ShipmentDetailScreen.tsx
+        ├── DashboardScreen.tsx
+        └── SapIntegrationScreen.tsx
+```
 
-## 5. Prototype component structure
+Routes: `#/record` · `#/monitor` · `#/monitor/:shipmentId` · `#/dashboard` · `#/sap`
 
-~~~
-flowchart TB
-    UI[Mobile-first UI]
-    State[Prototype state / mock API]
-    Seed[Synthetic data]
-    OperatorView[Operator workspace]
-    SupervisorView[Supervisor workspace]
-    ManagerView[Manager workspace]
+---
 
-    UI --> OperatorView
-    UI --> SupervisorView
-    UI --> ManagerView
-    OperatorView --> State
-    SupervisorView --> State
-    ManagerView --> State
-    State --> Seed
-~~~
+## 5. Commands
 
-Recommended implementation boundaries:
+| Command | What it does |
+|---------|-------------|
+| `npm install` | Install dependencies (once after cloning) |
+| `npm run dev` | Start the app at `http://localhost:5173` |
+| `npm run storybook` | Open the component Storybook at `http://localhost:6006` |
+| `npm test` | Run logic tests |
+| `npm run build` | Production build into `dist/` |
 
-- **UI layer:** navigation, role selector, forms, cards, tables, status labels, feedback messages.
-- **Prototype state layer:** activity creation, issue creation, filtering, status updates, and mock notifications.
-- **Synthetic data layer:** fictional users, package/shipment references, activities, issues, delays, and KPI values.
+---
 
-The prototype may use a local mock API or in-memory state. It does not need a database, message broker, integration adapter, or production identity provider.
+## 6. Security, privacy and compliance boundaries
+- **Fictional data only.** No real shipments, products, companies or people. Roles are labels, not accounts.
+- **No secrets.** No API keys, `.env` files or passwords in the repo. `node_modules/` and `dist/` are in `.gitignore`.
+- **No network calls.** The app must work with Wi-Fi turned off after `npm install`.
+- **The SAP connection is simulated** and labelled as such on screen. No SAP credentials, URLs or real system names are in the code.
+- **Role switcher ≠ security.** It only changes the view. A real product would need authentication, server-side role-based access, audit trails and validation.
+- TrackIt records **operational observations**. It never creates or changes official batch, inventory, serial-number or quality records, and never approves release.
 
-## 6. Important terminology and safety boundaries
-
-- A QR code or identifier is used to find or reference a package/shipment; it is not proof of authenticity, release, or quality status.
-- TrackIt records an **operational observation**. It does not create or modify an authoritative batch, inventory, serialization, or quality record.
-- “Quarantine” may appear only as a fictional status or issue category in the prototype. TrackIt must not remove a hold or approve release.
-- KPI values are operational estimates based on prototype data, not validated system-of-record metrics.
-- The problem statement should remain appropriately cautious: warehouse teams **may** lose time or visibility when activities and issues are recorded manually or across disconnected systems. This requires confirmation through additional interviews.
-
-## 7. Future production architecture
-
-The following architecture is not part of the workshop prototype. It describes the capabilities that would need to be assessed before any controlled operational deployment.
-
-~~~
-flowchart TB
-    Client[Approved web or mobile clients]
-    Gateway[API gateway / backend-for-frontend]
-    Auth[Enterprise identity and RBAC]
-    Services[Workflow, movement, issue, KPI, and notification services]
-    Data[(Operational database and audit trail)]
-    Events[(Event and integration queue)]
-    Adapters[Approved integration adapters]
-    Systems[WMS / ERP / QMS / notification systems]
-
-    Client --> Gateway
-    Gateway --> Auth
-    Gateway --> Services
-    Services --> Data
-    Services --> Events
-    Events --> Adapters
-    Adapters <--> Systems
-~~~
-
-Potential future capabilities include:
-
-- Enterprise authentication, MFA, server-side RBAC, and zone-based authorization.
-- Approved read/write interface specifications for WMS, ERP, and QMS.
-- Idempotency and duplicate-scan protection.
-- Retry, reconciliation, dead-letter handling, and interface monitoring.
-- Append-only, tamper-evident audit trails.
-- Controlled notification routing and escalation.
-- KPI read models, metric definitions, freshness indicators, and export approval.
-- Encryption, secrets management, vulnerability management, backups, and recovery testing.
-- Privacy controls, retention rules, data residency, and access reviews.
-- Risk assessment and validation planning according to intended use.
-
-## 8. Production-readiness decisions
-
-Before extending the prototype, the team must validate:
-
-- Which activities are genuinely still recorded on paper and why.
-- Whether the problem is confirmed by operators, supervisors, and quality stakeholders.
-- Whether TrackIt needs read-only or command-capable integration with existing systems.
-- Which identifiers and operational data may be stored.
-- Whether any proposed workflow affects GxP-regulated processes.
-- The required permissions, retention, audit, export, and notification rules.
-- Whether offline capture is necessary and how conflicts would be handled.
-
-## 9. Recommended delivery sequence
-
-### Phase 1 — Workshop prototype
-
-Build the three role workspaces with synthetic data and one complete record → monitor → analyse journey.
-
-### Phase 2 — Evidence and usability refinement
-
-Conduct additional interviews, verify the paper-based workflow, remove unsupported features, and test whether users understand the prototype.
-
-### Phase 3 — Production-readiness assessment
-
-Define formal requirements, conduct security/privacy/quality risk assessments, specify approved integrations, determine validation scope, and design operational support and recovery procedures.
-
-## 10. Architecture conclusion
-
-For the current project, TrackIt should be presented as a focused operational visibility prototype rather than a warehouse digitalisation platform. Its architecture should stay small, demonstrable, and based on synthetic data. The production architecture should remain documented as a future direction, not as functionality that the prototype already provides.
-
+## 7. Future production architecture (not built)
+A real deployment would add: company single sign-on with MFA, a backend API with server-side permissions, a database with a tamper-evident audit trail, a **real two-way SAP integration** behind the same `sapAdapter` (for example through SAP OData services or IDocs, via the company's integration platform), with idempotent sending, retries, reconciliation and interface monitoring; WMS integration through approved interfaces; data-retention and GDPR controls, and a risk-based validation assessment (EU GMP Annex 11, GAMP 5) together with Quality Assurance and IT. An AI issue-classification feature could be evaluated later, if users ask for it.
