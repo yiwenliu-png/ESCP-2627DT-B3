@@ -1,0 +1,1 @@
+import{defineConfig}from"vite";import react from"@vitejs/plugin-react";export default defineConfig({base:"/ESCP-2627DT-B3/",plugins:[react()]});
