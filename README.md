@@ -63,3 +63,17 @@ Simulated scanning and roles (no login), fictional data, **simulated SAP connect
 | Name | Main contribution |
 |------|-------------------|
 | [ ] | [ ] |
+
+
+## Live prototype
+
+Open the deployed app: [TrackIt live prototype](https://yiwenliu-png.github.io/ESCP-2627DT-B3/)
+
+![TrackIt phone prototype](assets/trackit-phone-prototype.png)
+
+### Open it on a phone
+
+1. Open the live prototype link on your phone.
+2. Add it to your Home Screen if you want an app-like shortcut.
+3. Use the bottom navigation to try Record, Monitor, Dashboard, and SAP.
+4. For the presentation, use the fictional shipment `SHP-1042` and follow the two-minute demo in `prototype/PRESENTATION.md`.
